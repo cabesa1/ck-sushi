@@ -1,6 +1,7 @@
 'use client';
 
 import { FormEvent, useEffect, useState } from 'react';
+import { supabase } from '../lib/supabase/client';
 
 const WA = 'https://wa.me/5515991843232?text=Ol%C3%A1%2C%20gostaria%20de%20reservar%20uma%20mesa%20no%20CK%20Sushi.';
 const experiences = [
@@ -124,11 +125,13 @@ export default function Home() {
     return () => window.removeEventListener('keydown', close);
   }, []);
 
-  function submit(event: FormEvent<HTMLFormElement>) {
+  async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
     const name = String(data.get('name') || '').trim();
+    const phone = String(data.get('phone') || '').trim();
     const date = String(data.get('date') || '');
+    const time = String(data.get('time') || '');
     const people = Number(data.get('people') || 0);
     const birthDay = String(data.get('birthDay') || '');
     const birthMonth = String(data.get('birthMonth') || '');
@@ -139,9 +142,11 @@ export default function Home() {
     const todayString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
     if (name.length < 2) errors.name = 'Digite seu nome para continuarmos.';
+    if (phone.replace(/\D/g, '').length < 10) errors.phone = 'Informe um telefone com DDD.';
     if (!date) errors.date = 'Escolha a data desejada.';
     else if (date < todayString) errors.date = 'Escolha uma data a partir de hoje.';
     else if (new Date(`${date}T12:00:00`).getDay() === 1) errors.date = 'O CK Sushi não abre às segundas-feiras. Escolha outro dia.';
+    if (!time) errors.time = 'Escolha um horário.';
     if (!Number.isInteger(people) || people < 1) errors.people = 'Informe pelo menos uma pessoa.';
     else if (people > 30) errors.people = 'Para grupos acima de 30 pessoas, fale diretamente com a equipe.';
     const birthParts = [birthDay, birthMonth, birthYear];
@@ -161,7 +166,9 @@ export default function Home() {
       'Olá, gostaria de verificar uma reserva no CK Sushi.',
       '',
       `Nome: ${name}`,
+      `Telefone: ${phone}`,
       `Data desejada: ${day}/${month}/${year}`,
+      `Horário desejado: ${time}`,
       `Quantidade de pessoas: ${people}`,
       ...(birthParts.every(Boolean) && birthConsent ? [`Data de nascimento: ${birthDay.padStart(2, '0')}/${birthMonth.padStart(2, '0')}/${birthYear}`, 'Consentimento: autorizo o uso da data de nascimento para atendimento e comunicações de aniversário.'] : []),
       '',
@@ -169,11 +176,28 @@ export default function Home() {
     ].join('\n');
 
     setSubmitting(true);
-    window.setTimeout(() => {
-      setReservationLink(`https://wa.me/5515991843232?text=${encodeURIComponent(message)}`);
+    const birthDate = birthParts.every(Boolean) && birthConsent ? `${birthYear}-${birthMonth.padStart(2, '0')}-${birthDay.padStart(2, '0')}` : null;
+    const { error } = await supabase.rpc('request_ck_reservation', {
+      customer_name: name,
+      customer_phone: phone,
+      requested_date: date,
+      requested_time: time,
+      requested_party_size: people,
+      customer_birth_date: birthDate,
+      birthday_consent: Boolean(birthDate),
+    });
+    if (error) {
+      const friendlyMessage = error.message.includes('Capacidade esgotada') ? 'Não há capacidade suficiente para essa data.'
+        : error.message.includes('Horário indisponível') ? 'Esse horário não está disponível.'
+        : error.message.includes('fechado') || error.message.includes('bloqueada') ? 'O restaurante não recebe reservas nessa data.'
+        : 'Não foi possível registrar sua solicitação. Tente novamente.';
+      setFormErrors({ submit: friendlyMessage });
       setSubmitting(false);
-      setSent(true);
-    }, 650);
+      return;
+    }
+    setReservationLink(`https://wa.me/5515991843232?text=${encodeURIComponent(message)}`);
+    setSubmitting(false);
+    setSent(true);
   }
 
   function openReservation() {
@@ -367,6 +391,7 @@ export default function Home() {
             <p className="eyebrow"><i/> Reservar mesa</p><h2 id="reserve-title">Sua noite<br/>começa aqui.</h2>
             <form onSubmit={submit} noValidate>
               <label>Seu nome<input name="name" placeholder="Como podemos te chamar?" aria-invalid={Boolean(formErrors.name)} aria-describedby="name-error" autoFocus/><span className="fieldError" id="name-error" role="alert">{formErrors.name}</span></label>
+              <label>Seu telefone<input name="phone" type="tel" inputMode="tel" placeholder="(15) 99999-9999" aria-invalid={Boolean(formErrors.phone)} aria-describedby="phone-error"/><span className="fieldError" id="phone-error" role="alert">{formErrors.phone}</span></label>
               <div className="formField">
                 <label id="date-label">Quando você gostaria de vir?</label>
                 <input type="hidden" name="date" value={selectedDate}/>
@@ -394,6 +419,7 @@ export default function Home() {
                 </div>}
                 <span className="fieldError" id="date-error" role="alert">{formErrors.date}</span>
               </div>
+              <label>Qual horário?<select className="formSelect" name="time" defaultValue="" aria-invalid={Boolean(formErrors.time)} aria-describedby="time-error"><option value="">Escolha um horário</option>{['18:30','19:00','19:30','20:00','20:30','21:00','21:30','22:00'].map((time) => <option key={time} value={time}>{time}</option>)}</select><span className="fieldError" id="time-error" role="alert">{formErrors.time}</span></label>
               <label>Quantas pessoas?<input name="people" type="number" min="1" max="30" placeholder="2" aria-invalid={Boolean(formErrors.people)} aria-describedby="people-error"/><span className="fieldError" id="people-error" role="alert">{formErrors.people}</span></label>
               <fieldset className="birthField" aria-describedby="birth-error birth-consent-error">
                 <legend>Data de nascimento <span>(opcional)</span></legend>
@@ -406,6 +432,7 @@ export default function Home() {
                 <label className="birthConsent"><input type="checkbox" name="birthConsent" value="yes" aria-invalid={Boolean(formErrors.birthConsent)}/><span>Autorizo o CK Sushi a utilizar minha data de nascimento para personalizar o atendimento e enviar comunicações de aniversário pelo WhatsApp.</span></label>
                 <span className="fieldError" id="birth-consent-error" role="alert">{formErrors.birthConsent}</span>
               </fieldset>
+              <span className="submitError" role="alert">{formErrors.submit}</span>
               <button className="pill darkPill" type="submit" disabled={submitting}>{submitting ? 'Preparando reserva…' : 'Continuar reserva'} {!submitting && <Arrow/>}</button>
             </form>
             <p className="formNote">Ao continuar, você será direcionado ao WhatsApp do CK Sushi para confirmar disponibilidade.</p>

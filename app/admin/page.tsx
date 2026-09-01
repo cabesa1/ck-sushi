@@ -1,7 +1,8 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useState } from 'react';
 import styles from './admin.module.css';
+import { CK_RESTAURANT_ID, supabase } from '../../lib/supabase/client';
 
 type Status = 'Nova' | 'Confirmada' | 'Concluída' | 'Cancelada';
 type Reservation = { id: number; day: number; time: string; name: string; phone: string; people: number; status: Status; lastVisit: number | null; visits: number };
@@ -54,6 +55,9 @@ function AvailabilityCard({ people, capacity, setCapacity, isBlocked, weeklyClos
 }
 
 export default function AdminPage() {
+  const [access, setAccess] = useState<'loading'|'signedout'|'unauthorized'|'ready'>('loading');
+  const [authError, setAuthError] = useState('');
+  const [authLoading, setAuthLoading] = useState(false);
   const [section, setSection] = useState('Visão geral');
   const [day, setDay] = useState(0);
   const [reservations, setReservations] = useState(seed);
@@ -70,6 +74,32 @@ export default function AdminPage() {
   const inactive = reservations.filter((item) => (item.lastVisit ?? 0) >= 90).length;
   const weeklyClosed = date.getDay() === 1;
   const isBlocked = weeklyClosed || blocked.includes(day);
+
+  useEffect(() => {
+    async function verifyAccess() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) { setAccess('signedout'); return; }
+      const { data } = await supabase.from('staff_profiles').select('user_id').eq('user_id', session.user.id).eq('restaurant_id', CK_RESTAURANT_ID).maybeSingle();
+      setAccess(data ? 'ready' : 'unauthorized');
+    }
+    verifyAccess();
+    const { data: listener } = supabase.auth.onAuthStateChange(() => verifyAccess());
+    return () => listener.subscription.unsubscribe();
+  }, []);
+
+  async function login(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    setAuthLoading(true);
+    setAuthError('');
+    const { error } = await supabase.auth.signInWithPassword({ email: String(form.get('email') || ''), password: String(form.get('password') || '') });
+    if (error) { setAuthError('E-mail ou senha inválidos.'); setAuthLoading(false); return; }
+    setAuthLoading(false);
+  }
+
+  if (access === 'loading') return <main className={styles.authPage}><div className={styles.authCard}><span className={styles.authMark}>CK</span><p>Verificando acesso seguro…</p></div></main>;
+  if (access === 'signedout') return <main className={styles.authPage}><form className={styles.authCard} onSubmit={login}><span className={styles.authMark}>CK</span><small>CK SUSHI · ÁREA RESTRITA</small><h1>Entrar no<br/>painel.</h1><label>E-mail<input name="email" type="email" autoComplete="email" required placeholder="seu@email.com"/></label><label>Senha<input name="password" type="password" autoComplete="current-password" required placeholder="Sua senha"/></label>{authError && <p className={styles.authError}>{authError}</p>}<button type="submit" disabled={authLoading}>{authLoading ? 'Entrando…' : 'Entrar com segurança'}</button><a href="/">Voltar ao site</a></form></main>;
+  if (access === 'unauthorized') return <main className={styles.authPage}><div className={styles.authCard}><span className={styles.authMark}>CK</span><small>ACESSO NÃO AUTORIZADO</small><h1>Conta sem<br/>permissão.</h1><p>Este usuário existe, mas não está cadastrado como funcionário do CK Sushi.</p><button onClick={() => supabase.auth.signOut()}>Sair desta conta</button></div></main>;
   function notify(text: string) { setToast(text); window.setTimeout(() => setToast(''), 2200); }
   function setStatus(id: number, status: Status) { setReservations((items) => items.map((item) => item.id === id ? { ...item, status } : item)); notify(`Reserva marcada como ${status.toLowerCase()}.`); }
 
@@ -77,7 +107,7 @@ export default function AdminPage() {
     <aside className={styles.sidebar}>
       <a className={styles.brand} href="/"><span>CK</span><div><b>CK SUSHI</b><small>GESTÃO</small></div></a>
       <nav>{[['Visão geral','⌂'],['Agenda','▦'],['Reservas','◎'],['Clientes','♙'],['Disponibilidade','◷']].map(([name, icon]) => <button key={name} className={section === name ? styles.active : ''} onClick={() => setSection(name)}><i>{icon}</i><span>{name}</span></button>)}</nav>
-      <div className={styles.profile}><span>CS</span><div><b>Equipe CK Sushi</b><small>Administrador</small></div></div>
+      <div className={styles.profile}><span>CS</span><div><b>Equipe CK Sushi</b><small>Administrador</small></div><button className={styles.signOut} onClick={() => supabase.auth.signOut()} aria-label="Sair">Sair</button></div>
     </aside>
 
     <section className={styles.content}>
