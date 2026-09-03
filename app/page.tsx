@@ -1,7 +1,6 @@
 'use client';
 
 import { FormEvent, useEffect, useState } from 'react';
-import { supabase } from '../lib/supabase/client';
 
 const WA = 'https://wa.me/5515991843232?text=Ol%C3%A1%2C%20gostaria%20de%20reservar%20uma%20mesa%20no%20CK%20Sushi.';
 const experiences = [
@@ -10,7 +9,6 @@ const experiences = [
   { kicker: 'Uma noite completa', title: ['VIVA O', 'CK SUSHI'], image: '/ck-tuna-selection-1065.jpg', imageSet: '/ck-tuna-selection-640.jpg 640w, /ck-tuna-selection-1065.jpg 1065w', label: 'Combinado servido no CK Sushi' },
 ];
 const weekDays = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
-const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
 function localDateValue(date: Date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
@@ -37,6 +35,9 @@ export default function Home() {
   const [reservationLink, setReservationLink] = useState(WA);
   const [selectedDate, setSelectedDate] = useState('');
   const [calendarOpen, setCalendarOpen] = useState(false);
+  const [ambienteOpen, setAmbienteOpen] = useState(false);
+  const [omakaseOpen, setOmakaseOpen] = useState(false);
+  const [japaOpen, setJapaOpen] = useState(false);
   const [calendarMonth, setCalendarMonth] = useState(() => {
     const today = new Date();
     return new Date(today.getFullYear(), today.getMonth(), 1);
@@ -55,8 +56,10 @@ export default function Home() {
       const saved = JSON.parse(localStorage.getItem('ck-cookie-consent-v2') || 'null');
       const valid = saved?.savedAt && Date.now() - saved.savedAt < 31536000000;
       if (valid) {
-        setAnalytics(Boolean(saved.analytics));
-        setMarketing(Boolean(saved.marketing));
+        queueMicrotask(() => {
+          setAnalytics(Boolean(saved.analytics));
+          setMarketing(Boolean(saved.marketing));
+        });
       } else {
         window.setTimeout(() => setCookieNotice(true), 1500);
       }
@@ -125,7 +128,7 @@ export default function Home() {
     return () => window.removeEventListener('keydown', close);
   }, []);
 
-  async function submit(event: FormEvent<HTMLFormElement>) {
+  function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
     const name = String(data.get('name') || '').trim();
@@ -133,10 +136,6 @@ export default function Home() {
     const date = String(data.get('date') || '');
     const time = String(data.get('time') || '');
     const people = Number(data.get('people') || 0);
-    const birthDay = String(data.get('birthDay') || '');
-    const birthMonth = String(data.get('birthMonth') || '');
-    const birthYear = String(data.get('birthYear') || '');
-    const birthConsent = data.get('birthConsent') === 'yes';
     const errors: Record<string, string> = {};
     const today = new Date();
     const todayString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
@@ -149,15 +148,6 @@ export default function Home() {
     if (!time) errors.time = 'Escolha um horário.';
     if (!Number.isInteger(people) || people < 1) errors.people = 'Informe pelo menos uma pessoa.';
     else if (people > 30) errors.people = 'Para grupos acima de 30 pessoas, fale diretamente com a equipe.';
-    const birthParts = [birthDay, birthMonth, birthYear];
-    if (birthParts.some(Boolean) && !birthParts.every(Boolean)) errors.birth = 'Preencha dia, mês e ano ou deixe os três campos vazios.';
-    else if (birthParts.every(Boolean)) {
-      const birthDate = new Date(Number(birthYear), Number(birthMonth) - 1, Number(birthDay), 12);
-      const validBirthDate = birthDate.getFullYear() === Number(birthYear) && birthDate.getMonth() === Number(birthMonth) - 1 && birthDate.getDate() === Number(birthDay) && birthDate <= today;
-      if (!validBirthDate) errors.birth = 'Informe uma data de nascimento válida.';
-      else if (!birthConsent) errors.birthConsent = 'Marque a autorização para compartilhar a data de nascimento.';
-    }
-
     setFormErrors(errors);
     if (Object.keys(errors).length) return;
 
@@ -170,31 +160,11 @@ export default function Home() {
       `Data desejada: ${day}/${month}/${year}`,
       `Horário desejado: ${time}`,
       `Quantidade de pessoas: ${people}`,
-      ...(birthParts.every(Boolean) && birthConsent ? [`Data de nascimento: ${birthDay.padStart(2, '0')}/${birthMonth.padStart(2, '0')}/${birthYear}`, 'Consentimento: autorizo o uso da data de nascimento para atendimento e comunicações de aniversário.'] : []),
       '',
       'Podem confirmar a disponibilidade, por favor?',
     ].join('\n');
 
     setSubmitting(true);
-    const birthDate = birthParts.every(Boolean) && birthConsent ? `${birthYear}-${birthMonth.padStart(2, '0')}-${birthDay.padStart(2, '0')}` : null;
-    const { error } = await supabase.rpc('request_ck_reservation', {
-      customer_name: name,
-      customer_phone: phone,
-      requested_date: date,
-      requested_time: time,
-      requested_party_size: people,
-      customer_birth_date: birthDate,
-      birthday_consent: Boolean(birthDate),
-    });
-    if (error) {
-      const friendlyMessage = error.message.includes('Capacidade esgotada') ? 'Não há capacidade suficiente para essa data.'
-        : error.message.includes('Horário indisponível') ? 'Esse horário não está disponível.'
-        : error.message.includes('fechado') || error.message.includes('bloqueada') ? 'O restaurante não recebe reservas nessa data.'
-        : 'Não foi possível registrar sua solicitação. Tente novamente.';
-      setFormErrors({ submit: friendlyMessage });
-      setSubmitting(false);
-      return;
-    }
     setReservationLink(`https://wa.me/5515991843232?text=${encodeURIComponent(message)}`);
     setSubmitting(false);
     setSent(true);
@@ -239,7 +209,7 @@ export default function Home() {
   return (
     <>
       <div className={`loader ${loaded ? 'loaderExit' : ''}`} aria-hidden={loaded}>
-        <div className="loaderBrand"><span className="mark">CK</span><b>CK SUSHI</b></div>
+        <div className="loaderBrand"><img src="/ck-logo.png" alt="CK Sushi"/></div>
         <div className="loaderTrack"><span /></div>
       </div>
 
@@ -251,7 +221,7 @@ export default function Home() {
             <nav className="desktopNav" aria-label="Navegação principal">
               <a href="#rodizio">O rodízio</a><a href="#experiencia">A experiência</a>
             </nav>
-            <a className="logo" href="#inicio"><span className="mark">CK</span><b>CK SUSHI</b></a>
+            <a className="logo" href="#inicio" aria-label="CK Sushi"><img src="/ck-logo.png" alt="CK Sushi"/></a>
             <div className="headerActions">
               <button className="bookText" onClick={openReservation}>Reservar mesa</button>
               <button className="burger" onClick={() => setMenu(true)} aria-label="Abrir menu"><i/><i/></button>
@@ -302,16 +272,25 @@ export default function Home() {
 
         <section className="rodizio" id="rodizio">
           <p className="eyebrow"><i/> A experiência CK</p>
-          <h2 data-reveal>Rodízio para<br/>todos os desejos.</h2>
+          <h2 data-reveal>Uma experiência<br/>única.</h2>
           <div className="rows">
             {[
               ['01','Sushis & sashimis','Clássicos e criações preparados com cuidado durante toda a noite.'],
               ['02','Pratos quentes','Sabores reconfortantes para completar sua experiência japonesa.'],
-              ['03','Seleção da casa','Peças especiais que traduzem a personalidade do CK Sushi.'],
-              ['04','Um lugar para celebrar','Jantares, encontros e comemorações em um ambiente marcante.'],
-              ['05','Eventos especiais','Uma experiência pensada para aniversários, encontros e celebrações inesquecíveis.'],
-              ['06','À la carte','Escolha seus pratos favoritos individualmente e viva o CK do seu jeito.'],
-            ].map(([n,title,text],i) => <article data-reveal key={n} style={{transitionDelay:`${i*90}ms`}}><span>{n}</span><div><h3>{title}</h3><p>{text}</p></div><i className="rowArrow"><Arrow/></i></article>)}
+              ['03','À la carte','Escolha seus pratos favoritos individualmente e viva o CK do seu jeito.'],
+              ['04','Omakase','Uma experiência exclusiva para transformar uma data especial.'],
+              ['05','Um lugar para celebrar','Um ambiente acolhedor para encontros, jantares e celebrações.'],
+              ['06','Japa in the house','A experiência do CK Sushi onde você estiver.'],
+            ].map(([n,title,text],i) => {
+              const isAmbiente = n === '05';
+              const isOmakase = n === '04';
+              const isJapa = n === '06';
+              const isExpandable = isAmbiente || isOmakase || isJapa;
+              const isOpen = isAmbiente ? ambienteOpen : isOmakase ? omakaseOpen : isJapa ? japaOpen : false;
+              const toggle = isAmbiente ? () => setAmbienteOpen((open) => !open) : isOmakase ? () => setOmakaseOpen((open) => !open) : () => setJapaOpen((open) => !open);
+              const detailId = isAmbiente ? 'ambiente-details' : isOmakase ? 'omakase-details' : 'japa-details';
+              return <article className={isExpandable ? `japaRow revealed${isOpen ? ' open' : ''}` : ''} data-reveal key={n} style={{transitionDelay:`${i*90}ms`}}><span>{n}</span><div><h3>{title}</h3><p>{text}</p></div>{isExpandable ? <button className="rowArrow japaToggle" type="button" onClick={toggle} aria-expanded={isOpen} aria-controls={detailId} aria-label={isOpen ? `Fechar detalhes de ${title}` : `Abrir detalhes de ${title}`}><Arrow/></button> : <i className="rowArrow"><Arrow/></i>}{isAmbiente && <div className="japaDetails" id={detailId} aria-hidden={!isOpen}><div><strong>Conforto para diferentes momentos.</strong><p>O restaurante conta com balcão e mesas em um espaço acolhedor e bem distribuído. Ao todo, comportamos até 43 pessoas para refeições, encontros e celebrações.</p></div></div>}{isOmakase && <div className="japaDetails" id={detailId} aria-hidden={!isOpen}><div><strong>Uma data especial merece uma experiência única.</strong><p>No Omakase, a seleção fica por conta do chef, que conduz uma sequência exclusiva de sabores e preparos para tornar sua celebração ainda mais marcante. Consulte disponibilidade e condições com nossa equipe.</p></div><a className="pill darkPill" href="https://wa.me/5515991843232?text=Ol%C3%A1%2C%20gostaria%20de%20reservar%20a%20experi%C3%AAncia%20Omakase%20para%20uma%20data%20especial." target="_blank" rel="noreferrer">Reservar Omakase pelo WhatsApp <Arrow/></a></div>}{isJapa && <div className="japaDetails" id={detailId} aria-hidden={!isOpen}><div><strong>O CK vai até você.</strong><p>Levamos a experiência japonesa do CK Sushi para sua casa, empresa ou evento, com uma proposta personalizada para a ocasião. Consulte formatos, disponibilidade e valores diretamente com nossa equipe.</p></div><a className="pill darkPill" href="https://wa.me/5515991843232?text=Ol%C3%A1%2C%20gostaria%20de%20solicitar%20uma%20cota%C3%A7%C3%A3o%20do%20Japa%20in%20the%20house." target="_blank" rel="noreferrer">Cotação: (15) 99184-3232 <Arrow/></a></div>}</article>;
+            })}
           </div>
         </section>
 
@@ -368,7 +347,7 @@ export default function Home() {
             <button className="pill lightPill" onClick={openReservation}>Reservar agora <Arrow/></button>
           </div>
           <div className="footerGrid">
-            <div><a className="logo" href="#inicio"><span className="mark">CK</span><b>CK SUSHI</b></a><p>Sabores japoneses, ingredientes frescos e uma experiência feita para repetir.</p></div>
+            <div><a className="logo" href="#inicio" aria-label="CK Sushi"><img src="/ck-logo.png" alt="CK Sushi"/></a><p>Sabores japoneses, ingredientes frescos e uma experiência feita para repetir.</p></div>
             <div><small>VISITE</small><p>Av. Júlio Cassola, 1405<br/>Connect Two · Votorantim, SP</p></div>
             <div><small>FALE COM A GENTE</small><p><a href="tel:+5515991843232">(15) 99184-3232</a><br/><a href={WA}>WhatsApp</a></p></div>
             <div><small>NAVEGUE</small><p><a href="#rodizio">O rodízio</a><br/><a href="#experiencia">Experiência</a><br/><a href="#local">Localização</a></p></div>
@@ -378,7 +357,7 @@ export default function Home() {
       </main>
 
       <div className={`menuOverlay ${menu ? 'open' : ''}`} aria-hidden={!menu}>
-        <div className="overlayTop"><a className="logo" href="#inicio"><span className="mark">CK</span><b>CK SUSHI</b></a><button className="close" onClick={() => setMenu(false)} aria-label="Fechar menu">×</button></div>
+        <div className="overlayTop"><a className="logo" href="#inicio" aria-label="CK Sushi"><img src="/ck-logo.png" alt="CK Sushi"/></a><button className="close" onClick={() => setMenu(false)} aria-label="Fechar menu">×</button></div>
         <nav>{[['O rodízio','#rodizio'],['Experiência','#experiencia'],['Avaliações','#avaliacoes'],['Contato','#contato']].map(([label,href]) => <a key={href} href={href} onClick={() => setMenu(false)}>{label}</a>)}</nav>
         <div className="overlayBottom"><button className="pill lightPill" onClick={openReservation}>Reservar mesa <Arrow/></button><span>Votorantim · SP</span></div>
       </div>
@@ -395,7 +374,7 @@ export default function Home() {
               <div className="formField">
                 <label id="date-label">Quando você gostaria de vir?</label>
                 <input type="hidden" name="date" value={selectedDate}/>
-                <button className={`dateTrigger ${calendarOpen ? 'open' : ''}`} type="button" onClick={() => setCalendarOpen((open) => !open)} aria-expanded={calendarOpen} aria-controls="reservation-calendar" aria-labelledby="date-label date-value" aria-invalid={Boolean(formErrors.date)}>
+                <button className={`dateTrigger ${calendarOpen ? 'open' : ''}`} type="button" onClick={() => setCalendarOpen((open) => !open)} aria-expanded={calendarOpen} aria-controls="reservation-calendar" aria-labelledby="date-label date-value" aria-describedby={formErrors.date ? 'date-error' : undefined}>
                   <span id="date-value" className={selectedDate ? '' : 'placeholder'}>{displayDate(selectedDate)}</span><span className="calendarIcon" aria-hidden="true">▦</span>
                 </button>
                 {calendarOpen && <div className="datePicker" id="reservation-calendar" role="dialog" aria-label="Escolher data da reserva">
@@ -421,21 +400,10 @@ export default function Home() {
               </div>
               <label>Qual horário?<select className="formSelect" name="time" defaultValue="" aria-invalid={Boolean(formErrors.time)} aria-describedby="time-error"><option value="">Escolha um horário</option>{['18:30','19:00','19:30','20:00','20:30','21:00','21:30','22:00'].map((time) => <option key={time} value={time}>{time}</option>)}</select><span className="fieldError" id="time-error" role="alert">{formErrors.time}</span></label>
               <label>Quantas pessoas?<input name="people" type="number" min="1" max="30" placeholder="2" aria-invalid={Boolean(formErrors.people)} aria-describedby="people-error"/><span className="fieldError" id="people-error" role="alert">{formErrors.people}</span></label>
-              <fieldset className="birthField" aria-describedby="birth-error birth-consent-error">
-                <legend>Data de nascimento <span>(opcional)</span></legend>
-                <div className="birthFields">
-                  <select name="birthDay" defaultValue="" aria-label="Dia de nascimento" aria-invalid={Boolean(formErrors.birth)}><option value="">Dia</option>{Array.from({length:31},(_,index) => <option key={index + 1} value={index + 1}>{index + 1}</option>)}</select>
-                  <select name="birthMonth" defaultValue="" aria-label="Mês de nascimento" aria-invalid={Boolean(formErrors.birth)}><option value="">Mês</option>{monthNames.map((month,index) => <option key={month} value={index + 1}>{month}</option>)}</select>
-                  <select name="birthYear" defaultValue="" aria-label="Ano de nascimento" aria-invalid={Boolean(formErrors.birth)}><option value="">Ano</option>{Array.from({length:101},(_,index) => new Date().getFullYear() - index).map((year) => <option key={year} value={year}>{year}</option>)}</select>
-                </div>
-                <span className="fieldError" id="birth-error" role="alert">{formErrors.birth}</span>
-                <label className="birthConsent"><input type="checkbox" name="birthConsent" value="yes" aria-invalid={Boolean(formErrors.birthConsent)}/><span>Autorizo o CK Sushi a utilizar minha data de nascimento para personalizar o atendimento e enviar comunicações de aniversário pelo WhatsApp.</span></label>
-                <span className="fieldError" id="birth-consent-error" role="alert">{formErrors.birthConsent}</span>
-              </fieldset>
               <span className="submitError" role="alert">{formErrors.submit}</span>
               <button className="pill darkPill" type="submit" disabled={submitting}>{submitting ? 'Preparando reserva…' : 'Continuar reserva'} {!submitting && <Arrow/>}</button>
             </form>
-            <p className="formNote">Ao continuar, você será direcionado ao WhatsApp do CK Sushi para confirmar disponibilidade.</p>
+            <p className="formNote">Ao continuar, você será direcionado ao WhatsApp do CK Sushi para confirmar a disponibilidade.</p>
           </> : <div className="success"><span>✓</span><h2>Quase lá!</h2><p>Seus dados foram organizados. Agora envie a mensagem no WhatsApp para confirmar a disponibilidade.</p><a className="pill darkPill" href={reservationLink} target="_blank" rel="noreferrer">Abrir WhatsApp <Arrow/></a><button className="editReservation" onClick={() => setSent(false)}>Alterar os dados</button></div>}
         </section>
       </div>
@@ -481,7 +449,7 @@ export default function Home() {
             <h3>1. O que são cookies?</h3><p>Cookies e tecnologias semelhantes são pequenos registros armazenados no dispositivo para permitir funções do site, lembrar preferências e, quando autorizados, medir audiência ou campanhas.</p>
             <h3>2. O que o CK Sushi utiliza hoje?</h3><p>Este site usa armazenamento local essencial para registrar sua escolha de privacidade por até 12 meses. O Google Analytics somente poderá ser carregado depois da configuração oficial e do seu consentimento. Não usamos publicidade ou perfilamento neste momento.</p>
             <h3>3. Categorias opcionais</h3><p>As categorias “Análise” e “Marketing” permanecem inativas sem a respectiva ferramenta e sem consentimento. Você pode recusar sem perder acesso ao site.</p>
-            <h3>4. Reservas e WhatsApp</h3><p>Os dados digitados no formulário de reserva não são enviados a um banco de dados deste site. Ao continuar, você decide abrir o WhatsApp; a partir daí, o tratamento também estará sujeito aos termos e políticas do WhatsApp/Meta.</p>
+            <h3>4. Reservas e WhatsApp</h3><p>Os dados da reserva não são enviados ao CRM neste momento. Ao continuar, você escolhe abrir o WhatsApp com nome, telefone, data, horário e quantidade de pessoas; a partir daí, o tratamento também estará sujeito aos termos e políticas do WhatsApp/Meta.</p>
             <h3>5. Como mudar sua escolha</h3><p>Use “Preferências de cookies” no rodapé a qualquer momento. Uma nova escolha substitui a anterior. Você também pode apagar os dados do site nas configurações do navegador.</p>
             <h3>6. Controlador e direitos</h3><p>O CK Sushi é responsável pelas decisões sobre os dados tratados neste site. Para dúvidas, acesso, correção, eliminação ou revogação de consentimento, fale pelo WhatsApp <a href="tel:+5515991843232">(15) 99184-3232</a>.</p>
           </div>

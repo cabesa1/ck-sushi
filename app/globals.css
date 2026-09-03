@@ -32,3 +32,26 @@ footer{border-radius:var(--radius);background:var(--deep);color:white;padding:4r
 /* Páginas legais */
 .legalPage{min-height:100svh;background:var(--bg);padding:0;overflow:visible}.legalPage>header{display:flex;justify-content:space-between;align-items:center;padding:1.5rem clamp(1.5rem,5vw,5rem);border-bottom:1px solid var(--line);font-size:.72rem}.legalPage>header>a:last-child{text-decoration:underline;text-underline-offset:.25rem}.legalLogo{display:flex;align-items:center;gap:.65rem;letter-spacing:.18em}.legalLogo span{width:2.5rem;height:2.5rem;border:1px solid var(--ink);border-radius:50%;display:grid;place-content:center;letter-spacing:0}.legalPage>article{width:min(52rem,calc(100% - 3rem));margin:0 auto;padding:clamp(4rem,8vw,8rem) 0}.legalEyebrow{text-transform:uppercase;letter-spacing:.2em;color:var(--orange);font-size:.7rem}.legalPage h1{font-size:clamp(4rem,10vw,8rem);line-height:.84;letter-spacing:-.065em;margin:1.2rem 0 2rem}.legalUpdated{color:var(--soft);font-size:.72rem;padding-bottom:2rem;border-bottom:1px solid var(--line)}.legalPage article section{padding-top:1rem}.legalPage article h2{font-size:1.15rem;margin:2.2rem 0 .55rem}.legalPage article section p{color:var(--soft);font-size:.87rem;line-height:1.75;margin:0}.legalPage article section a{color:var(--orange);text-decoration:underline}.legalPage>footer{border-radius:0;padding:1.5rem clamp(1.5rem,5vw,5rem);display:flex;justify-content:space-between;font-size:.72rem}.legalPage>footer a{text-decoration:underline;text-underline-offset:.25rem}
 @media(max-width:640px){.legalPage>article{width:min(100% - 2rem,52rem)}.legalPage h1{font-size:3.8rem}.legalPage>footer{flex-direction:column;gap:.8rem}}
+.logo img{display:block;width:5.4rem;height:auto;object-fit:contain}.loaderBrand img{display:block;width:8rem;height:auto}.footerGrid .logo img,.overlayTop .logo img{width:6.4rem}.legalLogo img{display:block;width:5.5rem;height:auto}.notFoundMark{width:7rem;height:7rem;border:0;border-radius:0;object-fit:contain;margin-bottom:30px}
+
+/* Mantém a marca dentro do cabeçalho e recorta resíduos nas bordas do PNG. */
+.hero header .logo{display:block;width:5.4rem;height:5.4rem;flex:0 0 5.4rem;overflow:hidden;justify-self:center}
+.hero header .logo img{display:block;width:100%!important;height:100%!important;object-fit:contain}
+.logo img,.loaderBrand img,.legalLogo img,.notFoundMark{clip-path:inset(4%)}
+
+/* Respiro para não recortar a última letra dos títulos animados. */
+.heroTitle .wordClip{padding-right:.12em}
+
+/* Centralização precisa das setas do carrossel. */
+.carouselControls>button{position:relative;padding:0}
+.carouselControls>button svg{position:absolute;display:block;width:1.15rem;height:1.15rem;left:50%;top:50%;margin:0;transform:translate(-50%,-50%)}
+.carouselControls>button:first-child svg{transform:translate(-50%,-50%) scaleX(-1)}
+
+/* Detalhes expansíveis do serviço Japa in the house. */
+.japaToggle{padding:0;background:transparent;color:inherit;cursor:pointer}
+.japaToggle svg{transition:transform .3s ease}
+.japaRow.open .japaToggle svg{transform:rotate(90deg)}
+.japaDetails{grid-column:2/-1;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:2rem;max-height:0;overflow:hidden;opacity:0;transform:translateY(-.5rem);transition:max-height .45s ease,opacity .3s ease,transform .3s ease}
+.japaRow.open .japaDetails{max-height:18rem;opacity:1;transform:none;padding:1.5rem 0 .5rem}
+.japaDetails strong{display:block;font-size:1.1rem;margin-bottom:.5rem}.japaDetails p{display:block!important;max-width:48rem;font-size:.8rem;line-height:1.65;color:var(--soft);margin:0}.japaDetails .pill{white-space:nowrap}
+@media(max-width:640px){.japaDetails{grid-template-columns:1fr;gap:1rem}.japaRow.open .japaDetails{max-height:28rem}.japaDetails .pill{width:max-content;max-width:100%;white-space:normal}}

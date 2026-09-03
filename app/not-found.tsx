@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 
 export const metadata: Metadata = {
   title: 'Página não encontrada',
@@ -9,11 +10,11 @@ export const metadata: Metadata = {
 export default function NotFound() {
   return (
     <main className="notFound">
-      <div className="notFoundMark" aria-hidden="true">CK</div>
+      <img className="notFoundMark" src="/ck-logo.png" alt="CK Sushi"/>
       <p>Erro 404</p>
       <h1>Essa peça<br/>não está no combinado.</h1>
       <span>A página que você procura não existe ou mudou de endereço.</span>
-      <a href="/">Voltar ao início</a>
+      <Link href="/">Voltar ao início</Link>
     </main>
   );
 }

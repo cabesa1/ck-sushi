@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   creator: 'CK Sushi',
   keywords: ['CK Sushi', 'rodízio japonês', 'restaurante japonês em Votorantim', 'sushi Votorantim', 'Nova Esplanada', 'Connect Two'],
   alternates: { canonical: '/' },
-  icons: { icon: '/favicon.svg', shortcut: '/favicon.svg', apple: '/favicon.svg' },
+  icons: { icon: '/ck-logo.png', shortcut: '/ck-logo.png', apple: '/ck-logo.png' },
   openGraph: {
     type: 'website',
     locale: 'pt_BR',
@@ -25,13 +25,13 @@ export const metadata: Metadata = {
     siteName: 'CK Sushi',
     title: 'CK Sushi | Rodízio Japonês em Votorantim',
     description: 'Uma experiência completa de rodízio japonês, com frescor, variedade e ambiente elegante em Votorantim.',
-    images: [{ url: '/og.jpg', width: 1200, height: 630, alt: 'CK Sushi — Rodízio japonês em Votorantim' }],
+    images: [{ url: '/og.png', width: 1200, height: 630, alt: 'CK Sushi — Rodízio japonês em Votorantim' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'CK Sushi | Rodízio Japonês em Votorantim',
     description: 'Uma experiência completa de rodízio japonês em Votorantim.',
-    images: ['/og.jpg'],
+    images: ['/og.png'],
   },
   robots: { index: true, follow: true },
 };
@@ -40,7 +40,7 @@ const restaurantSchema = {
   '@context': 'https://schema.org',
   '@type': 'Restaurant',
   name: 'CK Sushi',
-  image: `${siteUrl}/og.jpg`,
+  image: `${siteUrl}/og.png`,
   url: siteUrl,
   telephone: '+55 15 99184-3232',
   servesCuisine: 'Japonesa',

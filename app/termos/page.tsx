@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 
 export const metadata: Metadata = {
   title: 'Termos de Uso',
@@ -9,7 +10,7 @@ export const metadata: Metadata = {
 export default function TermsPage() {
   return (
     <main className="legalPage">
-      <header><a className="legalLogo" href="/"><span>CK</span><b>CK SUSHI</b></a><a href="/">Voltar ao site</a></header>
+      <header><Link className="legalLogo" href="/"><img src="/ck-logo.png" alt="CK Sushi"/></Link><Link href="/">Voltar ao site</Link></header>
       <article>
         <p className="legalEyebrow">Uso do site</p>
         <h1>Termos<br/>de Uso.</h1>
@@ -18,7 +19,7 @@ export default function TermsPage() {
           <h2>1. Aceitação</h2>
           <p>Ao navegar neste site, você concorda com estes termos. Se não concordar, interrompa o uso. O site apresenta o CK Sushi, sua experiência de rodízio, localização e canais de contato.</p>
           <h2>2. Solicitações de reserva</h2>
-          <p>O preenchimento do formulário e o envio da mensagem pelo WhatsApp representam uma solicitação. A reserva somente estará confirmada depois da resposta expressa da equipe do CK Sushi. Disponibilidade, horários e capacidade podem variar.</p>
+          <p>O envio do formulário registra a solicitação diretamente no sistema do CK Sushi. A equipe poderá entrar em contato pelo telefone informado caso precise confirmar algum detalhe. Disponibilidade, horários e capacidade podem variar.</p>
           <h2>3. Informações comerciais</h2>
           <p>Cardápio, itens do rodízio, preços, horários e condições podem ser atualizados pelo restaurante. Confirme informações específicas diretamente com a equipe antes da visita.</p>
           <h2>4. Uso adequado</h2>
