@@ -8,6 +8,11 @@ const experiences = [
   { kicker: 'Do balcão à mesa', title: ['FEITO', 'NA HORA'], image: '/ck-editorial-sushi-900.jpg', imageSet: '/ck-editorial-sushi-480.jpg 480w, /ck-editorial-sushi-900.jpg 900w', label: 'Criações do nosso sushibar' },
   { kicker: 'Uma noite completa', title: ['VIVA O', 'CK SUSHI'], image: '/ck-tuna-selection-1065.jpg', imageSet: '/ck-tuna-selection-640.jpg 640w, /ck-tuna-selection-1065.jpg 1065w', label: 'Combinado servido no CK Sushi' },
 ];
+const rodizioMenu = {
+  frios: ['Sunomono', 'Tataki', 'Carpaccio', 'Edamame', 'Temaki', 'Uramaki de camarão', 'Uramaki de salmão', 'Hossomaki', 'Jyo ebi', 'Jyo de salmão', 'Nigiri The Book de atum', 'Nigiri de salmão maçaricado', 'Nigiri de atum', 'Nigiri de vieira', 'Nigiri de peixe branco', 'Sashimi de salmão', 'Sashimi de salmão maçaricado', 'Sashimi de atum', 'Sashimi de peixe branco', 'Sashimi de polvo'],
+  quentes: ['Bolinho de salmão crocante', 'Tempurá de shisso', 'Shimeji na manteiga', 'Harumaki de queijo', 'Salmão grelhado', 'Yakisoba', 'Hot roll'],
+  sobremesas: ['Harumaki de doce de leite', 'Harumaki de chocolate branco', 'Harumaki de creme de avelã', 'Sorvete de creme', 'Sorvete de chocolate', 'Finalizador de paladar com licor de chocolate e café'],
+};
 const weekDays = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
 
 function localDateValue(date: Date) {
@@ -35,6 +40,7 @@ export default function Home() {
   const [reservationLink, setReservationLink] = useState(WA);
   const [selectedDate, setSelectedDate] = useState('');
   const [calendarOpen, setCalendarOpen] = useState(false);
+  const [rodizioOpen, setRodizioOpen] = useState(false);
   const [ambienteOpen, setAmbienteOpen] = useState(false);
   const [omakaseOpen, setOmakaseOpen] = useState(false);
   const [japaOpen, setJapaOpen] = useState(false);
@@ -275,21 +281,22 @@ export default function Home() {
           <h2 data-reveal>Uma experiência<br/>única.</h2>
           <div className="rows">
             {[
-              ['01','Sushis & sashimis','Clássicos e criações preparados com cuidado durante toda a noite.'],
-              ['02','Pratos quentes','Sabores reconfortantes para completar sua experiência japonesa.'],
-              ['03','À la carte','Escolha seus pratos favoritos individualmente e viva o CK do seu jeito.'],
-              ['04','Omakase','Uma experiência exclusiva para transformar uma data especial.'],
-              ['05','Um lugar para celebrar','Um ambiente acolhedor para encontros, jantares e celebrações.'],
-              ['06','Japa in the house','A experiência do CK Sushi onde você estiver.'],
+              ['01','Rodízio completo','Uma experiência completa, com pratos frios, quentes e sobremesas.'],
+              ['02','À la carte','Escolha seus pratos favoritos individualmente e viva o CK do seu jeito.'],
+              ['03','Omakase','Uma experiência exclusiva para transformar uma data especial.'],
+              ['04','Um lugar para celebrar','Um ambiente acolhedor para encontros, jantares e celebrações.'],
+              ['05','Japa in the house','A experiência do CK Sushi onde você estiver.'],
             ].map(([n,title,text],i) => {
-              const isAmbiente = n === '05';
-              const isOmakase = n === '04';
-              const isJapa = n === '06';
-              const isExpandable = isAmbiente || isOmakase || isJapa;
-              const isOpen = isAmbiente ? ambienteOpen : isOmakase ? omakaseOpen : isJapa ? japaOpen : false;
-              const toggle = isAmbiente ? () => setAmbienteOpen((open) => !open) : isOmakase ? () => setOmakaseOpen((open) => !open) : () => setJapaOpen((open) => !open);
-              const detailId = isAmbiente ? 'ambiente-details' : isOmakase ? 'omakase-details' : 'japa-details';
-              return <article className={isExpandable ? `japaRow revealed${isOpen ? ' open' : ''}` : ''} data-reveal key={n} style={{transitionDelay:`${i*90}ms`}}><span>{n}</span><div><h3>{title}</h3><p>{text}</p></div>{isExpandable ? <button className="rowArrow japaToggle" type="button" onClick={toggle} aria-expanded={isOpen} aria-controls={detailId} aria-label={isOpen ? `Fechar detalhes de ${title}` : `Abrir detalhes de ${title}`}><Arrow/></button> : <i className="rowArrow"><Arrow/></i>}{isAmbiente && <div className="japaDetails" id={detailId} aria-hidden={!isOpen}><div><strong>Conforto para diferentes momentos.</strong><p>O restaurante conta com balcão e mesas em um espaço acolhedor e bem distribuído. Ao todo, comportamos até 43 pessoas para refeições, encontros e celebrações.</p></div></div>}{isOmakase && <div className="japaDetails" id={detailId} aria-hidden={!isOpen}><div><strong>Uma data especial merece uma experiência única.</strong><p>No Omakase, a seleção fica por conta do chef, que conduz uma sequência exclusiva de sabores e preparos para tornar sua celebração ainda mais marcante. Consulte disponibilidade e condições com nossa equipe.</p></div><a className="pill darkPill" href="https://wa.me/5515991843232?text=Ol%C3%A1%2C%20gostaria%20de%20reservar%20a%20experi%C3%AAncia%20Omakase%20para%20uma%20data%20especial." target="_blank" rel="noreferrer">Reservar Omakase pelo WhatsApp <Arrow/></a></div>}{isJapa && <div className="japaDetails" id={detailId} aria-hidden={!isOpen}><div><strong>O CK vai até você.</strong><p>Levamos a experiência japonesa do CK Sushi para sua casa, empresa ou evento, com uma proposta personalizada para a ocasião. Consulte formatos, disponibilidade e valores diretamente com nossa equipe.</p></div><a className="pill darkPill" href="https://wa.me/5515991843232?text=Ol%C3%A1%2C%20gostaria%20de%20solicitar%20uma%20cota%C3%A7%C3%A3o%20do%20Japa%20in%20the%20house." target="_blank" rel="noreferrer">Cotação: (15) 99184-3232 <Arrow/></a></div>}</article>;
+              const isRodizio = n === '01';
+              const isALaCarte = n === '02';
+              const isAmbiente = n === '04';
+              const isOmakase = n === '03';
+              const isJapa = n === '05';
+              const isExpandable = isRodizio || isAmbiente || isOmakase || isJapa;
+              const isOpen = isRodizio ? rodizioOpen : isAmbiente ? ambienteOpen : isOmakase ? omakaseOpen : isJapa ? japaOpen : false;
+              const toggle = isRodizio ? () => setRodizioOpen((open) => !open) : isAmbiente ? () => setAmbienteOpen((open) => !open) : isOmakase ? () => setOmakaseOpen((open) => !open) : () => setJapaOpen((open) => !open);
+              const detailId = isRodizio ? 'rodizio-details' : isAmbiente ? 'ambiente-details' : isOmakase ? 'omakase-details' : 'japa-details';
+              return <article className={isExpandable ? `japaRow revealed${isRodizio ? ' rodizioRow' : ''}${isOpen ? ' open' : ''}` : ''} data-reveal key={n} style={{transitionDelay:`${i*90}ms`}}><span>{n}</span><div><h3>{title}</h3><p>{text}</p></div>{isExpandable ? <button className="rowArrow japaToggle" type="button" onClick={toggle} aria-expanded={isOpen} aria-controls={detailId} aria-label={isOpen ? `Fechar detalhes de ${title}` : `Abrir detalhes de ${title}`}><Arrow/></button> : isALaCarte ? <a className="rowArrow" href="https://menu.beefood.com.br/cksushi/" target="_blank" rel="noreferrer" aria-label="Abrir cardápio à la carte"><Arrow/></a> : <i className="rowArrow"><Arrow/></i>}{isRodizio && <div className="japaDetails rodizioDetails" id={detailId} aria-hidden={!isOpen}><div><strong>O melhor da experiência CK à vontade.</strong><p>Uma seleção ampla organizada entre pratos frios, pratos quentes e sobremesas.</p><div className="rodizioHighlights">{[['Pratos frios',rodizioMenu.frios],['Pratos quentes',rodizioMenu.quentes],['Sobremesas',rodizioMenu.sobremesas]].map(([group,items]) => <section key={group as string}><b>{group as string}</b><ul>{(items as string[]).map((item) => <li key={item}>{item}</li>)}</ul></section>)}</div></div></div>}{isAmbiente && <div className="japaDetails" id={detailId} aria-hidden={!isOpen}><div><strong>Conforto para diferentes momentos.</strong><p>O restaurante conta com balcão e mesas em um espaço acolhedor e bem distribuído. Ao todo, comportamos até 43 pessoas para refeições, encontros e celebrações.</p></div></div>}{isOmakase && <div className="japaDetails" id={detailId} aria-hidden={!isOpen}><div><strong>Uma data especial merece uma experiência única.</strong><p>No Omakase, a seleção fica por conta do chef, que conduz uma sequência exclusiva de sabores e preparos para tornar sua celebração ainda mais marcante. Consulte disponibilidade e condições com nossa equipe.</p></div><a className="pill darkPill" href="https://wa.me/5515991843232?text=Ol%C3%A1%2C%20gostaria%20de%20reservar%20a%20experi%C3%AAncia%20Omakase%20para%20uma%20data%20especial." target="_blank" rel="noreferrer">Reservar Omakase pelo WhatsApp <Arrow/></a></div>}{isJapa && <div className="japaDetails" id={detailId} aria-hidden={!isOpen}><div><strong>O CK vai até você.</strong><p>Levamos a experiência japonesa do CK Sushi para sua casa, empresa ou evento, com uma proposta personalizada para a ocasião. Consulte formatos, disponibilidade e valores diretamente com nossa equipe.</p></div><a className="pill darkPill" href="https://wa.me/5515991843232?text=Ol%C3%A1%2C%20gostaria%20de%20solicitar%20uma%20cota%C3%A7%C3%A3o%20do%20Japa%20in%20the%20house." target="_blank" rel="noreferrer">Cotação: (15) 99184-3232 <Arrow/></a></div>}</article>;
             })}
           </div>
         </section>
