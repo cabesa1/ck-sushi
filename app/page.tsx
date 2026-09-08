@@ -5,8 +5,8 @@ import { FormEvent, useEffect, useState } from 'react';
 const WA = 'https://wa.me/5515991843232?text=Ol%C3%A1%2C%20gostaria%20de%20reservar%20uma%20mesa%20no%20CK%20Sushi.';
 const experiences = [
   { kicker: 'Frescor sem pausa', title: ['SUSHI', 'SEM LIMITES'], image: '/ck-sushi-selection-900.jpg', imageSet: '/ck-sushi-selection-480.jpg 480w, /ck-sushi-selection-900.jpg 900w', label: 'Seleção real do CK Sushi' },
-  { kicker: 'Do balcão à mesa', title: ['FEITO', 'NA HORA'], image: '/ck-editorial-sushi-900.jpg', imageSet: '/ck-editorial-sushi-480.jpg 480w, /ck-editorial-sushi-900.jpg 900w', label: 'Criações do nosso sushibar' },
-  { kicker: 'Uma noite completa', title: ['VIVA O', 'CK SUSHI'], image: '/ck-tuna-selection-1065.jpg', imageSet: '/ck-tuna-selection-640.jpg 640w, /ck-tuna-selection-1065.jpg 1065w', label: 'Combinado servido no CK Sushi' },
+  { kicker: 'Do balcão à mesa', title: ['FEITO', 'NA HORA'], image: '/ck-sashimi-new-900.jpg', imageSet: '/ck-sashimi-new-480.jpg 480w, /ck-sashimi-new-900.jpg 900w', label: 'Seleção fresca de sashimis do CK Sushi' },
+  { kicker: 'Uma noite completa', title: ['VIVA O', 'CK SUSHI'], image: '/ck-shrimp-new-900.jpg', imageSet: '/ck-shrimp-new-480.jpg 480w, /ck-shrimp-new-900.jpg 900w', label: 'Camarões preparados pelo CK Sushi' },
 ];
 const rodizioMenu = {
   frios: ['Sunomono', 'Tataki', 'Carpaccio', 'Edamame', 'Temaki', 'Uramaki de camarão', 'Uramaki de salmão', 'Hossomaki', 'Jyo ebi', 'Jyo de salmão', 'Nigiri The Book de atum', 'Nigiri de salmão maçaricado', 'Nigiri de atum', 'Nigiri de vieira', 'Nigiri de peixe branco', 'Sashimi de salmão', 'Sashimi de salmão maçaricado', 'Sashimi de atum', 'Sashimi de peixe branco', 'Sashimi de polvo'],
@@ -308,8 +308,8 @@ export default function Home() {
             <p>Na Avenida Júlio Cassola, no Connect Two, próximo ao Alphaville Nova Esplanada. Um endereço para viver Votorantim de um jeito especial.</p>
           </div>
           <div className="photoPair">
-            <figure data-reveal><img src="/ck-interior-logo-900.jpg" srcSet="/ck-interior-logo-480.jpg 480w, /ck-interior-logo-900.jpg 900w" sizes="(max-width: 700px) 92vw, 45vw" alt="Logotipo do CK Sushi no interior do restaurante" loading="lazy" decoding="async"/><figcaption><b>Nosso espaço</b><span>A identidade do CK em cada detalhe</span></figcaption></figure>
-            <figure data-reveal><img src="/ck-editorial-sushi-900.jpg" srcSet="/ck-editorial-sushi-480.jpg 480w, /ck-editorial-sushi-900.jpg 900w" sizes="(max-width: 700px) 92vw, 45vw" alt="Sushi sob iluminação elegante" loading="lazy" decoding="async"/><figcaption><b>Atmosfera</b><span>Elegante, acolhedora e contemporânea</span></figcaption></figure>
+            <figure data-reveal><img src="/ck-signature-nigiri-900.jpg" srcSet="/ck-signature-nigiri-480.jpg 480w, /ck-signature-nigiri-900.jpg 900w" sizes="(max-width: 700px) 92vw, 45vw" alt="Nigiri especial preparado pelo CK Sushi" loading="lazy" decoding="async"/><figcaption><b>Criação da casa</b><span>Ingredientes especiais em combinações memoráveis</span></figcaption></figure>
+            <figure data-reveal><img src="/ck-nigiri-foie-gras-900.jpg" srcSet="/ck-nigiri-foie-gras-480.jpg 480w, /ck-nigiri-foie-gras-900.jpg 900w" sizes="(max-width: 700px) 92vw, 45vw" alt="Nigiri com foie gras preparado pelo CK Sushi" loading="lazy" decoding="async"/><figcaption><b>Experiência CK</b><span>Sabor, técnica e cuidado em cada peça</span></figcaption></figure>
           </div>
         </section>
 
