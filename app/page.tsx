@@ -14,6 +14,7 @@ const rodizioMenu = {
   sobremesas: ['Harumaki de doce de leite', 'Harumaki de chocolate branco', 'Harumaki de creme de avelã', 'Sorvete de creme', 'Sorvete de chocolate', 'Finalizador de paladar com licor de chocolate e café'],
 };
 const weekDays = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
+const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
 function localDateValue(date: Date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
