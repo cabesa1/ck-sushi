@@ -3,7 +3,7 @@ import { Onest } from 'next/font/google';
 import './globals.css';
 
 const onest = Onest({ subsets: ['latin'], variable: '--font-onest' });
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://cksushi.com.br';
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
